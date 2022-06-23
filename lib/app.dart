@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
 class MyApp extends StatefulWidget {
-  MyApp({Key? key}) : super(key: key);
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -10,17 +10,20 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   late VideoPlayerController _controller;
+  bool playing = false;
   int position = 0;
 
   @override
   void initState() {
     super.initState();
-    _controller = VideoPlayerController.network('https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4');
+    _controller = VideoPlayerController.network('https://media.istockphoto.com/videos/sekapark-sunset-video-izmit-city-turkey-video-id862642892');
 
     _controller.setLooping(true);
     _controller.initialize().then((value) => setState(() {}));
     _controller.play();
-    _controller.addListener(() => _controller.value.isInitialized ? updateSeeker() : null);
+    _controller.addListener(() {
+      _controller.value.isInitialized ? updateSeeker() : null;
+    });
   }
 
   Future<void> updateSeeker() async {
@@ -48,7 +51,7 @@ class _MyAppState extends State<MyApp> {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
     String twoDigitHours = twoDigits(duration ~/ 3600000);
     String twoDigitMinutes = twoDigits(duration ~/ 60000);
-    String twoDigitSeconds = twoDigits(duration ~/ 10000);
+    String twoDigitSeconds = twoDigits(duration ~/ 1000);
     if (twoDigitHours != '00') {
       return '$twoDigitHours:$twoDigitMinutes:$twoDigitSeconds';
     } else if (twoDigitMinutes != '00') {
@@ -98,7 +101,7 @@ class _MyAppState extends State<MyApp> {
                   ),
                   onPressed: () {
                     Duration currentPosition = _controller.value.position;
-                    Duration targetPosition = currentPosition - const Duration(seconds: 10);
+                    Duration targetPosition = currentPosition - const Duration(milliseconds: 10000);
                     _controller.seekTo(targetPosition);
                     setState(() {});
                   },
@@ -140,7 +143,7 @@ class _MyAppState extends State<MyApp> {
                   ),
                   onPressed: () {
                     Duration currentPosition = _controller.value.position;
-                    Duration targetPosition = currentPosition + const Duration(seconds: 10);
+                    Duration targetPosition = currentPosition + const Duration(milliseconds: 10000);
                     _controller.seekTo(targetPosition);
                     setState(() {});
                   },
@@ -154,7 +157,7 @@ class _MyAppState extends State<MyApp> {
                 children: [
                   Slider(
                     value: position.toDouble(),
-                    max: durationVideo + 10,
+                    max: durationVideo,
                     onChanged: (double value) {
                       position = value.toInt();
                       _controller.seekTo(Duration(milliseconds: position));
