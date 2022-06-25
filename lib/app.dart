@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
+import 'handles.dart';
+
 class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
 
@@ -10,8 +12,8 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   late VideoPlayerController _controller;
+  double durationVideo = 0;
   bool playing = false;
-  int position = 0;
 
   @override
   void initState() {
@@ -23,6 +25,7 @@ class _MyAppState extends State<MyApp> {
     _controller.play();
     _controller.addListener(() {
       _controller.value.isInitialized ? updateSeeker() : null;
+      durationVideo = _controller.value.duration.inMilliseconds.toDouble();
     });
   }
 
@@ -33,34 +36,6 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  String _position() {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    String twoDigitHours = twoDigits(position ~/ 3600000);
-    String twoDigitMinutes = twoDigits(position ~/ 60000);
-    String twoDigitSeconds = twoDigits(position ~/ 1000);
-    if (twoDigitHours != '00') {
-      return '$twoDigitHours:$twoDigitMinutes:$twoDigitSeconds';
-    } else if (twoDigitMinutes != '00') {
-      return '$twoDigitMinutes:$twoDigitSeconds';
-    } else {
-      return twoDigitSeconds;
-    }
-  }
-
-  String _totalDuration(int duration) {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    String twoDigitHours = twoDigits(duration ~/ 3600000);
-    String twoDigitMinutes = twoDigits(duration ~/ 60000);
-    String twoDigitSeconds = twoDigits(duration ~/ 1000);
-    if (twoDigitHours != '00') {
-      return '$twoDigitHours:$twoDigitMinutes:$twoDigitSeconds';
-    } else if (twoDigitMinutes != '00') {
-      return '$twoDigitMinutes:$twoDigitSeconds';
-    } else {
-      return twoDigitSeconds;
-    }
-  }
-
   @override
   void dispose() {
     _controller.dispose();
@@ -69,7 +44,6 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    final double durationVideo = _controller.value.duration.inMilliseconds.toDouble();
     return MaterialApp(
       title: 'Video Player',
       home: Scaffold(
@@ -90,65 +64,64 @@ class _MyAppState extends State<MyApp> {
                     child: VideoPlayer(_controller),
                   )
                 : const SizedBox(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  icon: const Icon(
-                    Icons.replay_10,
-                    size: 70,
-                    color: Colors.white,
+            Opacity(
+              opacity: _controller.value.isPlaying ? 0.2 : 1.0,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(
+                      Icons.replay_10,
+                      size: 70,
+                      color: Colors.white,
+                    ),
+                    onPressed: () {
+                      Duration currentPosition = _controller.value.position;
+                      Duration targetPosition = currentPosition - const Duration(milliseconds: 10000);
+                      _controller.seekTo(targetPosition);
+                    },
                   ),
-                  onPressed: () {
-                    Duration currentPosition = _controller.value.position;
-                    Duration targetPosition = currentPosition - const Duration(milliseconds: 10000);
-                    _controller.seekTo(targetPosition);
-                    setState(() {});
-                  },
-                ),
-                const SizedBox(
-                  width: 40,
-                ),
-                _controller.value.isPlaying
-                    ? IconButton(
-                        icon: const Icon(
-                          Icons.pause,
-                          size: 70,
-                          color: Colors.white,
-                        ),
-                        onPressed: () {
-                          _controller.pause();
-                          setState(() {});
-                        },
-                      )
-                    : IconButton(
-                        icon: const Icon(
-                          Icons.play_arrow,
-                          size: 80,
-                          color: Colors.white,
-                        ),
-                        onPressed: () {
-                          _controller.play();
-                          setState(() {});
-                        },
-                      ),
-                const SizedBox(
-                  width: 40,
-                ),
-                IconButton(
-                  icon: const Icon(
-                    Icons.forward_10,
-                    size: 70,
-                    color: Colors.white,
+                  const SizedBox(
+                    width: 40,
                   ),
-                  onPressed: () {
-                    Duration currentPosition = _controller.value.position;
-                    Duration targetPosition = currentPosition + const Duration(milliseconds: 10000);
-                    _controller.seekTo(targetPosition);
-                    setState(() {});
-                  },
-                ),
-              ],
+                  _controller.value.isPlaying
+                      ? IconButton(
+                          icon: const Icon(
+                            Icons.pause,
+                            size: 70,
+                            color: Colors.white,
+                          ),
+                          onPressed: () {
+                            _controller.pause();
+                          },
+                        )
+                      : IconButton(
+                          icon: const Icon(
+                            Icons.play_arrow,
+                            size: 80,
+                            color: Colors.white,
+                          ),
+                          onPressed: () {
+                            _controller.play();
+                          },
+                        ),
+                  const SizedBox(
+                    width: 40,
+                  ),
+                  IconButton(
+                    icon: const Icon(
+                      Icons.forward_10,
+                      size: 70,
+                      color: Colors.white,
+                    ),
+                    onPressed: () {
+                      Duration currentPosition = _controller.value.position;
+                      Duration targetPosition = currentPosition + const Duration(milliseconds: 10000);
+                      _controller.seekTo(targetPosition);
+                    },
+                  ),
+                ],
+              ),
             ),
             Padding(
               padding: const EdgeInsets.all(20),
@@ -167,11 +140,11 @@ class _MyAppState extends State<MyApp> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        _position(),
+                        currentPosition(),
                         style: const TextStyle(fontSize: 40),
                       ),
                       Text(
-                        _totalDuration(durationVideo.toInt()),
+                        totalDuration(durationVideo.toInt()),
                         style: const TextStyle(fontSize: 40),
                       ),
                     ],
